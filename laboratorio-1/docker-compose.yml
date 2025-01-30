@@ -1,8 +1,11 @@
 version: '3'
 services:
   app:
+    build:
+      context: ../app/spring/build/
+      dockerfile: Dockerfile
+    image: spring-app:stable
     container_name: spring-app
-    image: fiaplabs/spring-app
     environment:
       OTEL_SERVICE_NAME: "spring-app"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector:4318"
