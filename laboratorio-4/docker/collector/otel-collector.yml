@@ -1,0 +1,77 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # batch metrics before sending to reduce API usage
+  batch:
+
+exporters:
+  logging:
+    loglevel: debug
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
+  otlp/tempo:
+    endpoint: tempo:4317  # tempo container host and port
+    tls:
+      insecure: true
+  #otlp/jaeger:
+  #  endpoint: jaeger:4317  # tempo container host and port
+  #  tls:
+  #    insecure: true
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+
+connectors:
+  spanmetrics:
+    histogram:
+      explicit:
+        buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms]
+    dimensions:
+      - name: http.method
+        default: GET
+      - name: http.status_code
+    exemplars:
+      enabled: true
+    exclude_dimensions: ['status.code']
+    dimensions_cache_size: 1000
+    aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"    
+    metrics_flush_interval: 15s
+    metrics_expiration: 5m
+    events:
+      enabled: true
+      dimensions:
+        - name: exception.type
+        - name: exception.message
+    resource_metrics_key_attributes:
+      - service.name
+      - telemetry.sdk.language
+      - telemetry.sdk.name
+
+
+extensions:
+  # responsible for responding to health check calls on behalf of the collector.
+  health_check:
+  # fetches the collector’s performance data
+  pprof:
+  # serves as an http endpoint that provides live debugging data about instrumented components.
+  zpages:
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    metrics:
+      receivers: [otlp, spanmetrics]
+      processors: [batch]
+      exporters: [prometheusremotewrite] # mudar para "prometheusremotewrite" para alterar o método de envio no pipeline
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, logging, spanmetrics]  # name here should match the exporter name for tempo which is otlp
+    logs:
+      receivers: [otlp]
+      exporters: [loki,logging]

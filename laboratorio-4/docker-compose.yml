@@ -1,0 +1,84 @@
+version: '3'
+services:
+#  app:
+#    container_name: graalvm-app
+#    image: fiaplabs/graalvm-app
+#    environment:
+#      OTEL_SERVICE_NAME: "graalvm-app"
+#      OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector:4318"
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - collector
+
+  app:
+    container_name: spring-app
+    image: fiaplabs/spring-app
+    environment:
+      OTEL_SERVICE_NAME: "spring-app"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector:4318"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - collector
+      
+  collector:
+    container_name: collector
+    image: otel/opentelemetry-collector-contrib:0.103.0
+    restart: always
+    command:
+      - --config=/etc/otelcol-cont/otel-collector.yml
+    volumes:
+      - ./docker/collector/otel-collector.yml:/etc/otelcol-cont/otel-collector.yml
+    ports:
+      - "1888:1888" # pprof extension
+      - "8888:8888" # Prometheus metrics exposed by the collector
+      - "8889:8889" # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP http receiver
+      - "55679:55679" # zpages extension
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+#  jaeger:
+#    container_name: jaeger
+#    image: jaegertracing/all-in-one:latest
+#    restart: always
+#    ports:
+#      - "16686:16686"
+#      - "14268"
+#      - "14250"
+
+  tempo:
+    container_name: tempo
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yml" ]
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo.yml
+    ports:
+      - "3200" # tempo
+      - "4317" # otlp grpc  
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - "3000:3000"

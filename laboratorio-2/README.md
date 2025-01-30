@@ -1,0 +1,1 @@
+Consulte a [Documentação do conector spanmetrics](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/connector/spanmetricsconnector/README.md)

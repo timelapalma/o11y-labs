@@ -1,0 +1,87 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # batch metrics before sending to reduce API usage
+  batch:
+
+exporters:
+  logging:
+    loglevel: debug
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      cluster: demo
+  otlp/tempo:
+    endpoint: tempo:4317  # tempo container host and port
+    tls:
+      insecure: true
+  #otlp/jaeger:
+  #  endpoint: jaeger:4317  # tempo container host and port
+  #  tls:
+  #    insecure: true
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+
+connectors:
+  spanmetrics:
+    metrics_expiration: 10m
+    histogram:
+      explicit:
+        buckets: [125ms, 500ms, 2000ms, 8000ms]
+    dimensions:
+      - name: http.method
+      - name: http.route
+      - name: http.scheme
+      - name: http.status_code
+      - name: net.host.name
+      - name: net.protocol.name
+      - name: net.protocol.version
+      - name: telemetry.sdk.language
+      - name: telemetry.sdk.name
+      - name: telemetry.sdk.version
+      - name: ci.pipeline.id
+      - name: ci.pipeline.run.result
+      - name: service.instance.id
+      - name: host.name
+    exemplars:
+      enabled: false
+    dimensions_cache_size: 1000
+    aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"    
+    metrics_flush_interval: 15s
+    events:
+      enabled: true
+      dimensions:
+        - name: exception.type
+        - name: exception.message
+    resource_metrics_key_attributes:
+      - service.name
+
+
+extensions:
+  # responsible for responding to health check calls on behalf of the collector.
+  health_check:
+  # fetches the collector’s performance data
+  pprof:
+  # serves as an http endpoint that provides live debugging data about instrumented components.
+  zpages:
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    metrics:
+      receivers: [otlp, spanmetrics]
+      processors: [batch]
+      exporters: [prometheus] # mudar para "prometheusremotewrite" para alterar o método de envio no pipeline
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, logging, spanmetrics]  # name here should match the exporter name for tempo which is otlp
+    logs:
+      receivers: [otlp]
+      exporters: [loki,logging]
