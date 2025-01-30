@@ -5,22 +5,31 @@ Comece criando um novo projeto Spring Boot usando seu IDE preferido ou o site Sp
 * Java 21
 * Maven >= 3.9
 
+## Instalação de Dependências extras (Opicional)
+Necessário para testes locais com o build da App:
+
+```sh
+# Atualizando o mavan
+wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+sudo tar xvf apache-maven-3.9.9-bin.tar.gz -C /opt
+sudo ln -s /opt/apache-maven-3.9.9 /opt/maven
+
+# Atualizando o jdk na IDE 
+sudo dnf install java-21-amazon-corretto
+java --version
+```
+
 ## Processo de build:
 
 ```sh
 cd build
-mvn clean install
+/opt/maven/bin/mvn clean install
 ```
 
-Para execução do coletor volte a pasta raiz e execute:
+Acesse a app chamando o endpoint:
 
 ```sh
-docker-compose up
-```
 
-Acesse a app chamando seu endpoint:
-
-```sh
 curl http://localhost:8080/ping
 ```
 

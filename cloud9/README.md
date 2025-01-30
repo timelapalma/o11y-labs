@@ -33,19 +33,3 @@ A partir da raiz do projeto inicialize a stack de observability para os testes:
 cd ~/environment/sextou-no-otel/laboratorio-[1..10] # Escolha conforme a etapa
 docker-compose up -d
 ```
-
----
-
-## Instalação de Dependências extras (Opicional)
-Necessário para testes locais com o build da App:
-
-```sh
-# Atualizando o mavan
-wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
-sudo tar xvf apache-maven-3.9.9-bin.tar.gz -C /opt
-sudo ln -s /opt/apache-maven-3.9.9 /opt/maven
-
-# Atualizando o jdk na IDE 
-sudo dnf install java-21-amazon-corretto
-java --version
-```

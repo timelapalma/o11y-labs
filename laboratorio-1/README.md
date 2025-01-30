@@ -6,7 +6,7 @@
 
 OpenTelemetry é um conjunto de ferramentas, APIs e SDKs open-source projetado para padronizar a coleta, geração e exportação de dados de observabilidade, como logs, métricas e traces. Ele permite monitorar aplicações distribuídas de forma eficiente, independentemente da linguagem de programação ou da infraestrutura utilizada. Com suporte a diversos backends, como Prometheus, Jaeger e Grafana, o OpenTelemetry ajuda equipes a obterem visibilidade unificada sobre seus sistemas, facilitando a detecção e resolução de problemas.
 
-**Arquitetura:**
+## Arquitetura:
 
 - O spring-app é a aplicação principal, baseada em Spring, que exporta dados de observabilidade (traces) para o OpenTelemetry Collector utilizando o protocolo OTLP via HTTP. Ela expõe sua interface na porta 8080.
 
@@ -25,9 +25,9 @@ OpenTelemetry é um conjunto de ferramentas, APIs e SDKs open-source projetado p
 ![alt tag](imagens/diagrama-lab1.png)
 
 
-**Pipeline:**
+## Pipeline:
 
-Consule a estrutura do Pipeline [Clicando aqui](https://www.otelbin.io/#config=**H_Learn_more_about_the_OpenTelemetry_Collector_via*N*H_https%3A%2F%2Fopentelemetry.io%2Fdocs%2Fcollector%2F*N*Nreceivers%3A*N__otlp%3A*N____protocols%3A*N______grpc%3A*N______http%3A*N*Nprocessors%3A*N__batch%3A*N*Nexporters%3A*N__otlp%3A*N____endpoint%3A_otelcol%3A4317*N*Nextensions%3A*N__health*_check%3A*N*Nservice%3A*N__extensions%3A_%5Bhealth*_check%5D*N__pipelines%3A*N____traces%3A*N______receivers%3A_%5Botlp%5D*N______processors%3A_%5Bbatch%5D*N______exporters%3A_%5Botlp%5D*N____metrics%3A*N______receivers%3A_%5Botlp%5D*N______processors%3A_%5Bbatch%5D*N______exporters%3A_%5Botlp%5D*N____logs%3A*N______receivers%3A_%5Botlp%5D*N______processors%3A_%5Bbatch%5D*N______exporters%3A_%5Botlp%5D%7E)
+Consule a estrutura do Pipeline [Clicando aqui](https://www.otelbin.io/#config=receivers%3A*N__otlp%3A*N____protocols%3A*N______grpc%3A*N________endpoint%3A_0.0.0.0%3A4317*N______http%3A*N________endpoint%3A_0.0.0.0%3A4318*N*Nprocessors%3A*N__*H_Agrupar_m%C3%A9tricas_antes_de_enviar_para_reduzir_o_uso_da_API.*N__batch%3A*N*Nexporters%3A*N__logging%3A*N____loglevel%3A_debug*N__prometheus%3A*N____endpoint%3A_%220.0.0.0%3A8889%22*N____const*_labels%3A*N______cluster%3A_demo*N__otlp%2Ftempo%3A*N____endpoint%3A_tempo%3A4317*N____tls%3A*N______insecure%3A_true*N__loki%3A*N____endpoint%3A_%22http%3A%2F%2Floki%3A3100%2Floki%2Fapi%2Fv1%2Fpush%22*N*Nextensions%3A*N__*H_Respons%C3%A1vel_por_responder_a_chamadas_de_verifica%C3%A7%C3%A3o_de_sa%C3%BAde_em_nome_do_coletor.*N__health*_check%3A*N__*Nservice%3A*N__extensions%3A_%5Bhealth*_check%5D*N__pipelines%3A*N____metrics%3A*N______receivers%3A_%5Botlp%5D*N______processors%3A_%5Bbatch%5D*N______exporters%3A_%5Bprometheus%5D*N____traces%3A*N______receivers%3A_%5Botlp%5D*N______processors%3A_%5Bbatch%5D*N______exporters%3A_%5Botlp%2Ftempo%2C_logging%5D*N____logs%3A*N______receivers%3A_%5Botlp%5D*N______exporters%3A_%5Bloki%2Clogging%5D%7E)
 
 
 - A configuração do OpenTelemetry Collector define um pipeline para coletar, processar e exportar dados de observabilidade, abrangendo métricas, traces e logs.
@@ -39,6 +39,34 @@ Consule a estrutura do Pipeline [Clicando aqui](https://www.otelbin.io/#config=*
 - Os exporters enviam os dados processados para diferentes destinos. As métricas são exportadas para o Prometheus na porta 8889, os traces são encaminhados para o Tempo via OTLP gRPC e também registrados no console via logging, enquanto os logs são enviados para o Loki por meio da API HTTP.
 
 Além disso a extensão [health_check](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/extension/healthcheckextension/README.md) foi ativadas para fornecer funcionalidades de monitoramento da saúde do coletor.
+
+## Observações:
+
+1. Nesta configuração utilizamos o processo de scrape no prometheus a partir do arquivo [prometheus.yml](docker/prometheus/prometheus.yml)
+
+```sh
+scrape_configs:
+  - job_name: 'collector'
+    static_configs:
+      - targets: ['collector:8889']
+```
+
+2. Na configuração do otel no arquivo [otel-collector.yml](docker/collector/otel-collector.yml) utilizei o pipeline com envio para stdout para facilitar a análise de entrada dos logs e traces:
+
+```sh
+  logging:
+    loglevel: debug
+
+...
+
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, logging]
+    logs:
+      receivers: [otlp]
+      exporters: [loki,logging]
+```
 
 ---
 
