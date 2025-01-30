@@ -7,25 +7,20 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 processors:
-  # batch metrics before sending to reduce API usage
+  # Agrupar métricas antes de enviar para reduzir o uso da API.
   batch:
 
 exporters:
-  logging:
-    loglevel: debug
+  debug:
   prometheus:
     endpoint: "0.0.0.0:8889"
     const_labels:
       cluster: demo
   otlp/tempo:
-    endpoint: tempo:4317  # tempo container host and port
+    endpoint: tempo:4317
     tls:
       insecure: true
-  #otlp/jaeger:
-  #  endpoint: jaeger:4317  # tempo container host and port
-  #  tls:
-  #    insecure: true
-  loki:
+  otlp/loki:
     endpoint: "http://loki:3100/loki/api/v1/push"
 
 connectors:
@@ -64,24 +59,20 @@ connectors:
 
 
 extensions:
-  # responsible for responding to health check calls on behalf of the collector.
+  # Responsável por responder a chamadas de verificação de saúde em nome do coletor.
   health_check:
-  # fetches the collector’s performance data
-  pprof:
-  # serves as an http endpoint that provides live debugging data about instrumented components.
-  zpages:
 
 service:
-  extensions: [health_check, pprof, zpages]
+  extensions: [health_check]
   pipelines:
     metrics:
       receivers: [otlp, spanmetrics]
       processors: [batch]
-      exporters: [prometheus] # mudar para "prometheusremotewrite" para alterar o método de envio no pipeline
+      exporters: [prometheus]
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo, logging, spanmetrics]  # name here should match the exporter name for tempo which is otlp
+      exporters: [otlp/tempo, debug, spanmetrics]
     logs:
       receivers: [otlp]
-      exporters: [loki,logging]
+      exporters: [otlp/loki,debug]
