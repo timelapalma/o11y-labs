@@ -14,7 +14,7 @@ O fluxo de conversão ocorre nas seguintes etapas:
 4. Na próxima etapa a saída gerada pelo conector SpanMetrics é entregue como entrada do pipeline de métricas que fará o encaminhamento conforme a configuração desejada.
 5. Na última etapa ocorre a exportação para prometheus, as métricas convertidas são então exportadas onde podem ser armazenadas e utilizadas para monitoramento e visualização de desempenho.
 
-![alt tag](imagens/connector_spanmetrics.png)
+![alt tag](imagens/fluxo_spanmetrics.png)
 
 ## Arquitetura:
 
