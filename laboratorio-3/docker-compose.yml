@@ -19,13 +19,12 @@ services:
     restart: always
     command:
       - --config=/etc/otelcol-cont/otel-collector.yml
-      - --feature-gates=connector.spanmetrics.legacyMetricNames # A partir da versão 0.109.0 foi adicionado o namespace traces.span.metrics nas métricas de span, essa flag reverte o comportamento
     volumes:
       - ./docker/collector/otel-collector.yml:/etc/otelcol-cont/otel-collector.yml
     ports:
-      - "8888:8888" # Métricas do Prometheus expostas pelo coletor
-      - "8889:8889" # Métricas expostas para raspagem
-      - "13133:13133" # Extensao de health_check
+      - "8888:8888" # Prometheus metrics exposed by the collector
+      - "8889:8889" # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP http receiver
 

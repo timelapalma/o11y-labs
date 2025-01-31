@@ -19,9 +19,10 @@ bash ~/environment/sextou-no-otel/cloud9/scripts/resize.sh
 
 ## Instalação de Dependências:
 ```sh
-sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-docker-compose version
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) \
+-o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose && docker-compose version
 ```
 
 Pronto! 
@@ -31,5 +32,6 @@ A partir da raiz do projeto inicialize a stack de observability para os testes:
 
 ```sh
 cd ~/environment/sextou-no-otel/laboratorio-[1..10] # Escolha conforme a etapa
+docker-compose build
 docker-compose up -d
 ```

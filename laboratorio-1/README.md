@@ -1,6 +1,6 @@
 # Intro, Open Telemetry
 
-![alt tag](imagens/otel-logo.png)
+![alt tag](../imagens/otel-logo.png)
 
 **Conceito:**
 

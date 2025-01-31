@@ -6,16 +6,6 @@
 
 O recurso de Span Metrics do OpenTelemetry permite extrair métricas a partir de spans de traces, convertendo informações de rastreamento (como latência, contagem de requisições e erros) em métricas que podem ser facilmente consultadas e agregadas. Isso facilita a análise de desempenho e a correlação entre tracing e métricas.
 
-O fluxo de conversão ocorre nas seguintes etapas:
-
-1. Recepção de Traces: Os traces são recebidos através do OpenTelemetry utilizando o pipeline de traces, que coleta e organiza dados de rastreamento de aplicações.
-2. Os dados de spans enviados pelos traces são processados no processor batch para otimização e em seguida são enviados ao exporter otlp/tempo e ao fluxo nomeado como spanmetrics
-3. Aqui entra o conversor para spanmetrics que utiliza o conector SpanMetrics para converter os traces recebidos em métricas de rastreamento, estruturando os dados para a próxima etapa.
-4. Na próxima etapa a saída gerada pelo conector SpanMetrics é entregue como entrada do pipeline de métricas que fará o encaminhamento conforme a configuração desejada.
-5. Na última etapa ocorre a exportação para prometheus, as métricas convertidas são então exportadas onde podem ser armazenadas e utilizadas para monitoramento e visualização de desempenho.
-
-![alt tag](imagens/connector_spanmetrics.png)
-
 ## Arquitetura:
 
 - A mesma arquitetura do [laboratório-1](../laboratorio-1/README.md) foi mantida com o envio de métricas pela aplicação e acesso na porta 8080

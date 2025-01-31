@@ -9,8 +9,24 @@ receivers:
 processors:
   # Agrupar métricas antes de enviar para reduzir o uso da API.
   batch:
+  # Converter o padrão das métricas geradas via spanmétrics
+  metricstransform/rename_spanmetrics:
+    transforms:
+      - include: traces_span_metrics_duration_milliseconds_sum
+        match_type: strict
+        action: update
+        new_name: duration_sum
+      - include: traces_span_metrics_duration_milliseconds_count
+        match_type: strict
+        action: update
+        new_name: duration_count
+      - include: traces_span_metrics_duration_milliseconds_bucket
+        match_type: strict
+        action: update
+        new_name: duration_bucket
 
 exporters:
+  debug:
   prometheus:
     endpoint: "0.0.0.0:8889"
     const_labels:
@@ -38,16 +54,16 @@ connectors:
       - name: net.protocol.version
       - name: telemetry.sdk.language
       - name: telemetry.sdk.name
-      - name: telemetry.sdk.version
       - name: service.instance.id
       - name: host.name
     exemplars:
       enabled: false
     dimensions_cache_size: 1000
     aggregation_temporality: "AGGREGATION_TEMPORALITY_CUMULATIVE"    
+    events:
+      enabled: false
     resource_metrics_key_attributes:
       - service.name
-
 
 extensions:
   # Responsável por responder a chamadas de verificação de saúde em nome do coletor.
@@ -58,12 +74,12 @@ service:
   pipelines:
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [batch]
+      processors: [metricstransform/rename_spanmetrics, batch]
       exporters: [prometheus]
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo, spanmetrics]
+      exporters: [otlp/tempo, debug, spanmetrics]
     logs:
       receivers: [otlp]
-      exporters: [loki]
+      exporters: [loki,debug]
