@@ -12,21 +12,20 @@ processors:
   # Converter o padrão das métricas geradas via spanmétrics
   metricstransform/rename_spanmetrics:
     transforms:
-      - include: traces_span_metrics_duration_milliseconds_sum
+      - include: duration_milliseconds_sum
         match_type: strict
         action: update
         new_name: duration_sum
-      - include: traces_span_metrics_duration_milliseconds_count
+      - include: duration_milliseconds_count
         match_type: strict
         action: update
         new_name: duration_count
-      - include: traces_span_metrics_duration_milliseconds_bucket
+      - include: duration_milliseconds_bucket
         match_type: strict
         action: update
         new_name: duration_bucket
 
 exporters:
-  debug:
   prometheus:
     endpoint: "0.0.0.0:8889"
     const_labels:
@@ -79,7 +78,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo, debug, spanmetrics]
+      exporters: [otlp/tempo, spanmetrics]
     logs:
       receivers: [otlp]
-      exporters: [loki,debug]
+      exporters: [loki]
