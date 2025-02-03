@@ -9,13 +9,19 @@ receivers:
 processors:
   # Agrupar métricas antes de enviar para reduzir o uso da API.
   batch:
-  # Removendo a attribute instance via transform:
-  # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor
+  # Removendo a label instance via transform:
   transform/delete_attribute:
     metric_statements:
       - context: resource
         statements:
         - delete_key(attributes, "service.instance.id")
+        
+  transform/insert_attribute:
+    metric_statements:
+      - context: datapoint
+        statements:
+        - set(attributes["team"], resource.attributes["team"]) where attributes["team"] == nil
+        - set(attributes["version"], resource.attributes["version"]) where attributes["version"] == nil
 
 exporters:
   debug:
@@ -63,13 +69,18 @@ service:
   extensions: [health_check]
   pipelines:
     metrics:
-      receivers: [otlp, spanmetrics]
-      processors: [transform/delete_attribute, batch]
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
+    # Segreguei o pipeline de métricas unicamente para validar a possibildiade de usar regras distintas e habilitar o debug apenas neste fluxo 
+    metrics/spanmetrics:
+      receivers: [spanmetrics]
+      processors: [transform/delete_attribute, transform/insert_attribute, batch]
       exporters: [prometheusremotewrite, debug]
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo, spanmetrics, debug]
+      exporters: [otlp/tempo, spanmetrics]
     logs:
       receivers: [otlp]
       exporters: [loki]

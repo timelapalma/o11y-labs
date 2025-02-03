@@ -8,6 +8,7 @@ services:
     environment: 
       OTEL_SERVICE_NAME: "spring-app"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://collector:4318"
+      OTEL_RESOURCE_ATTRIBUTES: "team=observability,version=0.1" # Atributos adicionados no processo de instrumentação e coletados posteriormente via Otel
     ports:
       - "8080:8080"
     depends_on:
@@ -19,6 +20,7 @@ services:
     restart: always
     command:
       - --config=/etc/otelcol-cont/otel-collector.yml
+      - --feature-gates=connector.spanmetrics.legacyMetricNames # A partir da versão 0.109.0 foi adicionado o namespace traces.span.metrics nas métricas de span, essa flag reverte o comportamento
     volumes:
       - ./docker/collector/otel-collector.yml:/etc/otelcol-cont/otel-collector.yml
     ports:
