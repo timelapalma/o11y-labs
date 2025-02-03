@@ -9,27 +9,19 @@ receivers:
 processors:
   # Agrupar métricas antes de enviar para reduzir o uso da API.
   batch:
-  # Converter o padrão das métricas geradas via spanmétrics
-  metricstransform/rename_spanmetrics:
-    transforms:
-      - include: duration_milliseconds_sum
-        match_type: strict
-        action: update
-        new_name: duration_sum
-      - include: duration_milliseconds_count
-        match_type: strict
-        action: update
-        new_name: duration_count
-      - include: duration_milliseconds_bucket
-        match_type: strict
-        action: update
-        new_name: duration_bucket
+  # Removendo a attribute instance via transform:
+  # Ref: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/transformprocessor
+  transform/delete_attribute:
+    metric_statements:
+      - context: resource
+        statements:
+        - delete_key(attributes, "service.instance.id")
 
 exporters:
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    const_labels:
-      cluster: demo
+  debug:
+    verbosity: detailed
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
   otlp/tempo:
     endpoint: tempo:4317
     tls:
@@ -53,7 +45,6 @@ connectors:
       - name: net.protocol.version
       - name: telemetry.sdk.language
       - name: telemetry.sdk.name
-      - name: service.instance.id
       - name: host.name
     exemplars:
       enabled: false
@@ -73,12 +64,12 @@ service:
   pipelines:
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [metricstransform/rename_spanmetrics, batch]
-      exporters: [prometheus]
+      processors: [transform/delete_attribute, batch]
+      exporters: [prometheusremotewrite, debug]
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo, spanmetrics]
+      exporters: [otlp/tempo, spanmetrics, debug]
     logs:
       receivers: [otlp]
       exporters: [loki]

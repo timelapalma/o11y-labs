@@ -46,4 +46,4 @@ Consule a estrutura do Pipeline [CLICANDO AQUI](https://www.otelbin.io/#config=r
 
 # Extras:
 
-Artigo da Last9 sobre o uso de spanmétrics: [https://last9.io/blog/convert-opentelemetry-traces-to-metrics-using-spanconnector/}(https://last9.io/blog/convert-opentelemetry-traces-to-metrics-using-spanconnector/);]
+- Parte da explicação foi baseada no artigo [Convert OpenTelemetry Traces to Metrics with SpanMetrics](https://last9.io/blog/convert-opentelemetry-traces-to-metrics-using-spanconnector/) da Last9 sobre o uso de spanmétrics;
